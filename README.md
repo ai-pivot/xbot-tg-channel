@@ -1,93 +1,87 @@
+> **本文档面向 xbot agent**。当用户请求安装 Telegram channel 插件时，按以下步骤操作。
+
 # xbot-tg-channel
 
-Telegram channel plugin for [xbot](https://github.com/fixlater/xbot). Enables xbot to communicate via Telegram bot, with message patching (progress updates in-place), group support, markdown rendering, and inline keyboard commands.
+Telegram channel plugin for xbot。通过 Telegram Bot 与用户通信，支持消息原地更新（patch）、群组、Markdown 渲染、命令菜单。
 
-## Installation
+## 安装
 
-No Go toolchain required. Download the pre-built binary from [GitHub Releases](https://github.com/ai-pivot/xbot-tg-channel/releases) for your platform.
+### 1. 确定安装目录
 
-### Step-by-step (run these commands)
+插件目录为 xbot plugin 目录下的 `xbot.tg-channel/` 子目录。不要写死绝对路径，使用 xbot 的 plugin 目录配置或通过 `plugin-creator` skill 获取正确路径。
 
-```bash
-# 1. Create plugin directory
-mkdir -p ~/.xbot/plugins/xbot.tg-channel
-
-# 2. Download the latest binary (replace OS/ARCH with your platform)
-# Linux amd64:
-curl -L -o ~/.xbot/plugins/xbot.tg-channel/xbot-tg-channel \
-  https://github.com/ai-pivot/xbot-tg-channel/releases/latest/download/xbot-tg-channel-linux-amd64
-# Linux arm64:
-curl -L -o ~/.xbot/plugins/xbot.tg-channel/xbot-tg-channel \
-  https://github.com/ai-pivot/xbot-tg-channel/releases/latest/download/xbot-tg-channel-linux-arm64
-# macOS amd64:
-curl -L -o ~/.xbot/plugins/xbot.tg-channel/xbot-tg-channel \
-  https://github.com/ai-pivot/xbot-tg-channel/releases/latest/download/xbot-tg-channel-darwin-amd64
-# macOS arm64:
-curl -L -o ~/.xbot/plugins/xbot.tg-channel/xbot-tg-channel \
-  https://github.com/ai-pivot/xbot-tg-channel/releases/latest/download/xbot-tg-channel-darwin-arm64
-
-# 3. Make it executable
-chmod +x ~/.xbot/plugins/xbot.tg-channel/xbot-tg-channel
-
-# 4. Configure your bot token
-# Edit ~/.xbot/config.json and add under "channels":
-#   "tg": {
-#     "bot_token": "YOUR_BOT_TOKEN_FROM_BOTFATHER",
-#     "allow_from": ""
-#   }
+典型路径结构：
+```
+<xbot-plugin-dir>/
+  xbot.tg-channel/
+    plugin.json
+    xbot-tg-channel    # 可执行文件，与 plugin.json 同目录
 ```
 
-### Getting a Bot Token
+### 2. 获取二进制
 
-1. Message [@BotFather](https://t.me/BotFather) on Telegram
-2. Send `/newbot` and follow the prompts
-3. Copy the `bot_token` you receive
-4. Set it in your xbot config
+从 [GitHub Releases](https://github.com/ai-pivot/xbot-tg-channel/releases) 下载对应平台的预编译二进制。无需 Go 环境。
 
-## Configuration
+选择与当前系统匹配的文件（运行 `uname -sm` 确认）：
+- `xbot-tg-channel-linux-amd64`
+- `xbot-tg-channel-linux-arm64`
+- `xbot-tg-channel-darwin-amd64`
+- `xbot-tg-channel-darwin-arm64`
 
-| Key | Description | Default |
-|-----|-------------|---------|
-| `bot_token` | Bot token from @BotFather | (required) |
-| `allow_from` | Comma-separated Telegram user IDs (empty = allow all) | `""` |
-| `allow_groups` | Comma-separated Telegram group IDs (negative, e.g. `-1001234567`) | `""` (allow all) |
+下载后重命名为 `xbot-tg-channel`（去掉平台后缀），放入插件目录，设置可执行权限 `chmod +x`。
 
-To allow specific users only, set `allow_from` to their numeric user IDs (visible in the bot's debug log or via Telegram API).
+### 3. 激活 skill
 
-To restrict group access, set `allow_groups`. Leave empty to allow all groups.
+安装完成后，使用 `skill-creator` skill 激活此插件创建的 skill（如果存在 skill 定义文件）。skill 文件位于插件目录或 xbot 的 skills 目录中。
 
-## Features
+### 4. 配置 Bot Token
 
-- **Message patching**: Progress updates edit the same message in-place (like Feishu cards)
-- **Markdown rendering**: Full markdown support via Telegram entities (bold, italic, code, tables, links, etc.)
-- **Group support**: Works in groups with @mention or reply triggering
-- **Rate limiting**: Throttled edits (1/sec per chat) with automatic retry on rate limit
-- **Long messages**: Auto-splits messages exceeding 4096 characters
-- **Commands**: `/start`, `/cancel`, `/new`, `/settings`, `/history`
-- **Inline keyboard**: Quick actions via button taps
-- **Session queue**: One conversation per chat at a time, new requests wait politely
+需要用户提供 Telegram Bot Token。引导用户：
 
-## Commands
+1. 在 Telegram 中搜索 [@BotFather](https://t.me/BotFather)
+2. 发送 `/newbot`，按提示创建 bot
+3. 复制获得的 `bot_token`
+4. 将 token 写入 xbot config 的 channels.tg.bot_token 字段
 
-| Command | Description |
-|---------|-------------|
-| `/start` `/help` | Show welcome message with inline keyboard |
-| `/cancel` | Cancel current request |
-| `/new` | Start a new conversation |
-| `/settings` | Manage LLM configuration (model, temperature, etc.) |
-| `/history` | View conversation history |
-
-## Architecture
-
-The plugin runs as a standalone binary communicating with xbot via **JSON-RPC over stdio** (the GrpcPluginTransport protocol). It uses long-polling to receive Telegram updates and converts them to xbot inbound messages. Outbound messages from xbot are sent as Telegram messages with proper markdown formatting.
-
-## Build from Source
-
-Requires Go 1.21+.
-
-```bash
-go build -o xbot-tg-channel .
+配置结构：
+```json
+{
+  "channels": {
+    "tg": {
+      "bot_token": "<用户提供>",
+      "allow_from": "",
+      "allow_groups": ""
+    }
+  }
+}
 ```
+
+| 字段 | 说明 | 默认值 |
+|------|------|--------|
+| `bot_token` | BotFather 提供的 token（必填） | — |
+| `allow_from` | 允许的用户 ID，逗号分隔，空=所有人 | `""` |
+| `allow_groups` | 允许的群组 ID（负数），逗号分隔，空=所有群 | `""` |
+
+### 5. 重启 xbot 使插件生效
+
+## 验证
+
+安装完成后在 Telegram 中向 bot 发送一条消息，应收到回复。
+
+## 特性
+
+- 消息原地更新（progress patch，类似飞书卡片）
+- Markdown 渲染（粗体、斜体、代码块、表格、链接等）
+- 群组支持（@提及或回复触发）
+- 限流控制（每 chat 每秒最多 1 次 edit，429 自动重试）
+- 长消息自动拆分（4096 字符限制）
+- 命令：`/start` `/cancel` `/new` `/settings` `/history`
+- Inline keyboard 快捷操作
+- 每 chat 同时只处理一个请求，排队机制
+
+## 从源码编译
+
+需要 Go 1.21+：`go build -o xbot-tg-channel .`
 
 ## License
 

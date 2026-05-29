@@ -1,0 +1,49 @@
+{
+  "id": "xbot.tg-channel",
+  "name": "Telegram Channel",
+  "version": "1.0.0",
+  "description": "Telegram Bot channel plugin for xbot, feature-compatible with built-in Feishu channel.",
+  "author": "xbot",
+  "runtime": "grpc",
+  "entry": "./xbot-tg-channel",
+  "activationEvents": ["onStart"],
+  "permissions": ["channels.register"],
+  "contributes": {
+    "channelProvider": {
+      "name": "tg",
+      "config_schema": [
+        {
+          "key": "enabled",
+          "label": "Enable",
+          "description": "Enable the Telegram channel",
+          "type": "toggle",
+          "default_value": "false"
+        },
+        {
+          "key": "bot_token",
+          "label": "Bot Token",
+          "description": "Telegram Bot API token (from @BotFather)",
+          "type": "password",
+          "default_value": "",
+          "category": "Telegram"
+        },
+        {
+          "key": "allow_from",
+          "label": "Allowed Users",
+          "description": "Comma-separated Telegram user IDs allowed to use the bot. Empty = allow all.",
+          "type": "text",
+          "default_value": "",
+          "category": "Telegram"
+        },
+        {
+          "key": "admin_chat_id",
+          "label": "Admin Chat ID",
+          "description": "Telegram chat ID for admin notifications (optional)",
+          "type": "text",
+          "default_value": "",
+          "category": "Telegram"
+        }
+      ]
+    }
+  }
+}

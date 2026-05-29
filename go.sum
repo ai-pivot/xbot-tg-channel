@@ -1,0 +1,6 @@
+github.com/eekstunt/telegramify-markdown-go v0.2.0 h1:12NErifwcZWTbNySPAX/cS4OZTcYGDSL5610jJJfzlU=
+github.com/eekstunt/telegramify-markdown-go v0.2.0/go.mod h1:lpEJ5GTV0/b0Yl93yrmLm+Hbn/963FZKptAjsr+F9Vk=
+github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1 h1:wG8n/XJQ07TmjbITcGiUaOtXxdrINDz1b0J1w0SzqDc=
+github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1/go.mod h1:A2S0CWkNylc2phvKXWBBdD3K0iGnDBGbzRpISP2zBl8=
+github.com/yuin/goldmark v1.8.2 h1:kEGpgqJXdgbkhcOgBxkC0X0PmoPG1ZyoZ117rDVp4zE=
+github.com/yuin/goldmark v1.8.2/go.mod h1:ip/1k0VRfGynBgxOz0yCqHrbZXhcjxyuS66Brc7iBKg=

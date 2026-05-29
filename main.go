@@ -345,6 +345,9 @@ var (
 	// Message patching: chatID → last bot message ID
 	lastBotMsgID   = make(map[int64]int)
 	lastBotMsgIDMu sync.Mutex
+	// Track last user message ID per chat (for react emoji)
+	lastUserMsgID   = make(map[int64]int)
+	lastUserMsgIDMu sync.Mutex
 	// Track last sent text per chat to skip no-change edits
 	lastText   = make(map[int64]string)
 	lastTextMu sync.Mutex
@@ -830,6 +833,11 @@ content := msg.Text
  logf("msg from %s (%d) in %s %d: %s", senderName, senderID, ctype, chatID, truncate(content, 60))
  addHistory(chatID, "user", content, senderName)
 
+ // Remember user message ID for react emoji on reply
+ lastUserMsgIDMu.Lock()
+ lastUserMsgID[chatID] = msg.MessageID
+ lastUserMsgIDMu.Unlock()
+
  // Queue: skip if chat is busy
  chatBusyMu.Lock()
  if chatBusy[chatID] {
@@ -928,6 +936,27 @@ func isBusy(chatID int64) bool {
 	b := chatBusy[chatID]
 	chatBusyMu.Unlock()
 	return b
+}
+
+// setReact sets a reaction emoji on the user's last message in a chat.
+func setReact(chatID int64, emoji string) {
+	lastUserMsgIDMu.Lock()
+	msgID, ok := lastUserMsgID[chatID]
+	lastUserMsgIDMu.Unlock()
+	if !ok || msgID == 0 {
+		return
+	}
+	if bot == nil {
+		return
+	}
+	params := tgbotapi.Params{
+		"chat_id":    strconv.FormatInt(chatID, 10),
+		"message_id": strconv.Itoa(msgID),
+		"reaction":    fmt.Sprintf(`[{"type":"emoji","emoji":"%s"}]`, emoji),
+	}
+	if _, err := bot.MakeRequest("setMessageReaction", params); err != nil {
+		logf("setReact failed: %s", err.Error())
+	}
 }
 
 // ─── Commands ──────────────────────────────────────────────────────
@@ -1339,11 +1368,13 @@ func handleXbotEvent(msg map[string]any) {
 			if content != "" {
 				addHistory(chatID, "assistant", content, "")
 			}
+			setReact(chatID, "✅")
 			releaseBusy(chatID)
 		}
 		// phase:done also flush and release
 		if isDone && display != "" && display != "💭 思考中..." {
 			flushPatch(chatID)
+			setReact(chatID, "✅")
 			releaseBusy(chatID)
 		}
 	}

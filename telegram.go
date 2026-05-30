@@ -282,6 +282,7 @@ func doEditOrSend(chatID int64, text string, plain string, entities []tgbotapi.M
 
 		edit := tgbotapi.NewEditMessageText(chatID, prevID, plain)
 		edit.Entities = entities
+		edit.ReplyMarkup = &cancelKeyboard
 		_, err := bot.Send(edit)
 		if err == nil {
 			lastTextMu.Lock()
@@ -301,6 +302,7 @@ func doEditOrSend(chatID int64, text string, plain string, entities []tgbotapi.M
 				time.Sleep(wait)
 				retry := tgbotapi.NewEditMessageText(chatID, prevID, plain)
 				retry.Entities = entities
+				retry.ReplyMarkup = &cancelKeyboard
 				if _, err := bot.Send(retry); err == nil {
 					lastTextMu.Lock()
 					lastText[chatID] = text
@@ -317,6 +319,7 @@ func doEditOrSend(chatID int64, text string, plain string, entities []tgbotapi.M
 	cancelTyping(chatID)
 	msg := tgbotapi.NewMessage(chatID, plain)
 	msg.Entities = entities
+	msg.ReplyMarkup = &cancelKeyboard
 	sent, err := bot.Send(msg)
 	if err != nil {
 		return err
@@ -365,6 +368,7 @@ func doSendLong(chatID int64, text string, forceNew bool) error {
 		if i == 0 && hasPrev && !forceNew {
 			edit := tgbotapi.NewEditMessageText(chatID, prevID, plain)
 			edit.Entities = entities
+			edit.ReplyMarkup = &cancelKeyboard
 			if _, err := bot.Send(edit); err != nil {
 				logf("edit long msg failed: %s", err.Error())
 				forceNew = true
@@ -378,6 +382,7 @@ func doSendLong(chatID int64, text string, forceNew bool) error {
 
 		msg := tgbotapi.NewMessage(chatID, plain)
 		msg.Entities = entities
+		msg.ReplyMarkup = &cancelKeyboard
 		sent, err := bot.Send(msg)
 		if err != nil {
 			logf("send chunk %d failed: %s", i, err.Error())
@@ -556,6 +561,13 @@ func addHistory(chatID int64, role, content, sender string) {
 
 // ─── Bot Lifecycle ────────────────────────────────────────────────────
 
+// cancelKeyboard is the inline keyboard with cancel button, attached to every bot message.
+var cancelKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+	tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData("❌ Cancel", "cmd:cancel"),
+	),
+)
+
 func startBot() {
 	if cfg.BotToken == "" {
 		logf("no bot_token, waiting...")
@@ -570,6 +582,20 @@ func startBot() {
 	bot.Debug = false
 	logf("bot connected as @%s", bot.Self.UserName)
 	bot.Request(tgbotapi.DeleteWebhookConfig{DropPendingUpdates: true})
+
+	// Register bot commands menu
+	commands := []tgbotapi.BotCommand{
+		{Command: "start", Description: "Welcome message"},
+		{Command: "help", Description: "Show help"},
+		{Command: "cancel", Description: "Cancel current request"},
+		{Command: "new", Description: "Start new conversation"},
+		{Command: "settings", Description: "LLM settings"},
+		{Command: "history", Description: "View history"},
+	}
+	if _, err := bot.Request(tgbotapi.NewSetMyCommands(commands...)); err != nil {
+		logf("setMyCommands failed: %v", err)
+	}
+
 	startEditTicker()
 	go pollingLoop()
 }

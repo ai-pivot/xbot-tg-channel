@@ -1,3 +1,5 @@
+github.com/ai-pivot/xbot/plugin/protocol v0.0.0-20260530030933-e83ee7a623ff h1:+KPxfho0wLyt3QzGB08P70/Wnc6TWQjYRIbcmG6jRTY=
+github.com/ai-pivot/xbot/plugin/protocol v0.0.0-20260530030933-e83ee7a623ff/go.mod h1:JOcs7rwisOmc7qpH+nLg0oxtaX9qEEszNeNOw2rfqV8=
 github.com/eekstunt/telegramify-markdown-go v0.2.0 h1:12NErifwcZWTbNySPAX/cS4OZTcYGDSL5610jJJfzlU=
 github.com/eekstunt/telegramify-markdown-go v0.2.0/go.mod h1:lpEJ5GTV0/b0Yl93yrmLm+Hbn/963FZKptAjsr+F9Vk=
 github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1 h1:wG8n/XJQ07TmjbITcGiUaOtXxdrINDz1b0J1w0SzqDc=
